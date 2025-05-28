@@ -1,0 +1,156 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  role          UserRole  @default(SUBSCRIBER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Subscription related fields
+  isSubscribed     Boolean   @default(false)
+  subscriptionId   String?   @unique
+  subscriptionEnds DateTime?
+  
+  // Content creation (for admins)
+  content Content[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Admin can create content
+  content Content[]
+}
+
+model Subscriber {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  password         String
+  name             String?
+  isActive         Boolean   @default(true)
+  subscriptionId   String?   @unique
+  subscriptionEnds DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  lastPayment      DateTime?
+  monthlyAmount    Decimal?  @db.Decimal(10, 2)
+}
+
+model Content {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  type        ContentType
+  content     String      @db.Text // For blog posts (markdown) or file paths for media
+  thumbnail   String?     // For videos/images
+  isPublished Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  adminId String?
+  admin   Admin? @relation(fields: [adminId], references: [id])
+  userId  String?
+  user    User?  @relation(fields: [userId], references: [id])
+
+  @@index([type])
+  @@index([isPublished])
+}
+
+model Settings {
+  id              String  @id @default(cuid())
+  siteName        String  @default("SatsClub")
+  description     String? @db.Text
+  profilePicture  String?
+  bannerPicture   String?
+  subscriptionPrice Decimal @db.Decimal(10, 2) @default(10.00)
+  currency        String  @default("USD")
+  paymentProvider String  @default("btcpay") // or other bitcoin payment providers
+  webhookSecret   String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("settings")
+}
+
+model PaymentEvent {
+  id            String      @id @default(cuid())
+  eventType     String      // payment_received, subscription_cancelled, etc.
+  subscriberId  String?
+  amount        Decimal?    @db.Decimal(10, 2)
+  currency      String?
+  paymentId     String?
+  rawData       String      @db.Text // Store raw webhook data
+  processed     Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+
+  @@index([eventType])
+  @@index([processed])
+}
+
+enum UserRole {
+  ADMIN
+  SUBSCRIBER
+}
+
+enum ContentType {
+  VIDEO
+  IMAGE
+  BLOG_POST
+} 
