@@ -1,11 +1,11 @@
 # SatsClub 🟠
 
-A self-hosted Patreon alternative powered by Bitcoin subscriptions. Create premium content and get paid in Bitcoin.
+A self-hosted Patreon alternative powered by Bitvora Commerce & Nostr Wallet Connect (NWC). Create premium content and get paid in Bitcoin.
 
 ## Features
 
-- 🟠 **Bitcoin Payments**: Accept subscriptions with Bitcoin using third-party payment providers
-- 🏠 **Self-Hosted**: Complete control over your content and subscriber data  
+- 🟠 **Bitcoin Payments**: Accept subscriptions with Bitcoin using Nostr Wallet Connect
+- 🏠 **Self-Hosted, Self-Custodial**: Complete control over your content, subscriber data and money.  
 - 🎨 **Content Management**: Support for videos, images, and blog posts (Markdown)
 - 👥 **User Management**: Separate admin and subscriber roles
 - 📊 **Analytics Dashboard**: Track subscriber count, MRR, and other key metrics
@@ -175,11 +175,9 @@ npm run admin:list
 
 ## Payment Integration
 
-SatsClub is designed to work with Bitcoin payment providers like:
+SatsClub is designed to work with Bitvora Commerce
 
-- [BTCPay Server](https://btcpayserver.org/)
-- [OpenNode](https://www.opennode.com/)
-- [LNbits](https://lnbits.com/)
+- [Bitvora Commerce](https://commerce.bitvora.com/)
 
 Configure webhooks in your payment provider to send events to:
 ```
