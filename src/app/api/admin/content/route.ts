@@ -45,29 +45,24 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     }
 
-    const { searchParams } = new URL(request.url)
-    const type = searchParams.get('type')
-    const published = searchParams.get('published')
-
-    const where: any = {
-      adminId: session.user.id
-    }
-
-    if (type) {
-      where.type = type
-    }
-
-    if (published !== null) {
-      where.isPublished = published === 'true'
-    }
-
+    // Fetch all content for this admin
     const content = await prisma.content.findMany({
-      where,
+      where: {
+        OR: [
+          { adminId: session.user.id },
+          { userId: session.user.id }
+        ]
+      },
       orderBy: {
         createdAt: 'desc'
       },
       include: {
         admin: {
+          select: {
+            name: true
+          }
+        },
+        user: {
           select: {
             name: true
           }
@@ -77,7 +72,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(content)
   } catch (error) {
-    console.error('Error fetching content:', error)
+    console.error('Error fetching admin content:', error)
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 } 

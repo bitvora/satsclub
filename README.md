@@ -49,6 +49,11 @@ DATABASE_URL="postgresql://satsclub_user:satsclub_password@localhost:5477/satscl
 NEXTAUTH_URL="http://localhost:3000"
 NEXTAUTH_SECRET="your-secret-key-here-change-in-production"
 
+# Bitvora Commerce Configuration
+BITVORA_COMMERCE_HOST="https://api.bitvora.com"
+BITVORA_COMMERCE_API_KEY="your-bitvora-api-key"
+BITVORA_COMMERCE_PRODUCT_ID="your-product-id"
+
 # File uploads
 UPLOAD_DIR="./uploads"
 MAX_FILE_SIZE=50000000
@@ -175,9 +180,45 @@ npm run admin:list
 
 ## Payment Integration
 
-SatsClub is designed to work with Bitvora Commerce
+SatsClub is designed to work with Bitvora Commerce for Bitcoin subscription payments.
 
-- [Bitvora Commerce](https://commerce.bitvora.com/)
+### Bitvora Commerce Setup
+
+1. **Create Bitvora Commerce Account**: Sign up at [Bitvora Commerce](https://commerce.bitvora.com/)
+2. **Create a Product**: Set up your subscription product in the Bitvora dashboard
+3. **Get API Credentials**: Copy your API key and product ID
+4. **Configure Environment Variables**:
+
+```bash
+BITVORA_COMMERCE_HOST="https://api.bitvora.com"
+BITVORA_COMMERCE_API_KEY="your-bitvora-api-key"
+BITVORA_COMMERCE_PRODUCT_ID="your-product-id"
+```
+
+### Subscription Flow
+
+SatsClub implements a complete Bitcoin subscription flow:
+
+1. **User clicks "Subscribe"** → Creates checkout via Bitvora API
+2. **User enters Nostr Wallet Connect string** → Processes payment
+3. **Payment confirmation** → Updates user to subscriber status
+4. **Success page** → User gains access to premium content
+
+### API Endpoints
+
+The subscription system includes these API routes:
+
+- `POST /api/subscription/create-checkout` - Creates Bitvora checkout
+- `POST /api/subscription/process` - Processes payment with wallet connect
+- `GET /api/subscription/status/[checkoutId]` - Checks payment status
+
+### Nostr Wallet Connect
+
+Users pay with their Nostr-enabled Bitcoin wallet by:
+
+1. Providing their wallet connect string (e.g., `nostr+walletconnect://...`)
+2. Approving the payment in their wallet
+3. Automatic confirmation and account upgrade
 
 Configure webhooks in your payment provider to send events to:
 ```
