@@ -9,6 +9,7 @@ interface Settings {
   siteName: string
   description: string
   subscriptionPrice: number
+  subscriptionPeriod: string
   currency: string
   profilePicture?: string
   bannerPicture?: string
@@ -21,6 +22,7 @@ export default function AdminSettings() {
     siteName: '',
     description: '',
     subscriptionPrice: 0,
+    subscriptionPeriod: 'MONTHLY',
     currency: 'USD'
   })
   const [isLoading, setIsLoading] = useState(true)
@@ -178,7 +180,7 @@ export default function AdminSettings() {
                     <option value="USD">USD</option>
                     <option value="EUR">EUR</option>
                     <option value="GBP">GBP</option>
-                    <option value="BTC">BTC</option>
+                    <option value="BTC">Sats</option>
                   </select>
                 </div>
               </div>
@@ -203,33 +205,60 @@ export default function AdminSettings() {
             <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 p-8">
               <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Subscription Pricing</h2>
               
-              <div className="max-w-md">
-                <label htmlFor="subscriptionPrice" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Monthly Subscription Price
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-slate-500 sm:text-sm">
-                      {settings.currency === 'BTC' ? '₿' : '$'}
-                    </span>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="subscriptionPrice" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Subscription Price
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span className="text-slate-500 sm:text-sm">
+                        {settings.currency === 'BTC' ? '' : '$'}
+                      </span>
+                    </div>
+                    <input
+                      type="number"
+                      id="subscriptionPrice"
+                      name="subscriptionPrice"
+                      step="0.01"
+                      min="0"
+                      required
+                      value={settings.subscriptionPrice}
+                      onChange={handleChange}
+                      className="w-full pl-8 pr-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-slate-700 dark:text-white"
+                      placeholder="0.00"
+                    />
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <span className="text-slate-500 sm:text-sm">
+                        {settings.currency === 'BTC' ? 'sats' : ''}
+                      </span>
+                    </div>
                   </div>
-                  <input
-                    type="number"
-                    id="subscriptionPrice"
-                    name="subscriptionPrice"
-                    step="0.01"
-                    min="0"
-                    required
-                    value={settings.subscriptionPrice}
-                    onChange={handleChange}
-                    className="w-full pl-8 pr-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-slate-700 dark:text-white"
-                    placeholder="0.00"
-                  />
                 </div>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
-                  This is the monthly price subscribers will pay for access to your content.
-                </p>
+
+                <div>
+                  <label htmlFor="subscriptionPeriod" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Billing Period
+                  </label>
+                  <select
+                    id="subscriptionPeriod"
+                    name="subscriptionPeriod"
+                    value={settings.subscriptionPeriod}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 dark:bg-slate-700 dark:text-white"
+                  >
+                    <option value="DAILY">Daily</option>
+                    <option value="WEEKLY">Weekly</option>
+                    <option value="MONTHLY">Monthly</option>
+                    <option value="QUARTERLY">Quarterly</option>
+                    <option value="ANNUALLY">Annually</option>
+                  </select>
+                </div>
               </div>
+
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-4">
+                This is the price subscribers will pay for access to your content for the selected billing period.
+              </p>
             </div>
 
             {/* Visual Branding */}

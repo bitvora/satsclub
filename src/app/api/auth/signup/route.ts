@@ -4,12 +4,12 @@ import bcrypt from 'bcryptjs'
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, password } = await request.json()
+    const { email, password } = await request.json()
 
     // Validate input
-    if (!name || !email || !password) {
+    if (!email || !password) {
       return NextResponse.json(
-        { message: 'Name, email, and password are required' },
+        { message: 'Email and password are required' },
         { status: 400 }
       )
     }
@@ -39,7 +39,6 @@ export async function POST(request: NextRequest) {
     // Create user
     const user = await prisma.user.create({
       data: {
-        name,
         email,
         // Note: We're not storing the password in the User model for now
         // as we're using NextAuth. We'll handle this differently.

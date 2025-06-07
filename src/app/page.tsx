@@ -13,6 +13,7 @@ async function getSettings() {
           siteName: "SatsClub",
           description: "Premium content powered by Bitcoin subscriptions",
           subscriptionPrice: 10.00,
+          subscriptionPeriod: "MONTHLY",
           currency: "USD"
         }
       });
@@ -27,6 +28,7 @@ async function getSettings() {
       profilePicture: null,
       bannerPicture: null,
       subscriptionPrice: 10.00,
+      subscriptionPeriod: "MONTHLY",
       currency: "USD"
     };
   }
@@ -34,6 +36,17 @@ async function getSettings() {
 
 export default async function Home() {
   const settings = await getSettings();
+
+  const formatPeriodDisplay = (period: string) => {
+    switch (period) {
+      case 'DAILY': return 'day'
+      case 'WEEKLY': return 'week'
+      case 'MONTHLY': return 'month'
+      case 'QUARTERLY': return 'quarter'
+      case 'ANNUALLY': return 'year'
+      default: return 'month'
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
@@ -86,9 +99,11 @@ export default async function Home() {
               <div className="inline-flex items-center gap-3 bg-white dark:bg-slate-800 rounded-full px-8 py-4 shadow-lg border border-slate-200 dark:border-slate-700">
                 <span className="text-3xl">₿</span>
                 <span className="text-2xl font-bold text-slate-900 dark:text-white">
-                  ${settings.subscriptionPrice?.toString() || '10.00'}/{settings.currency}
+                  {settings.currency === 'BTC' ? '' : '$'}{settings.subscriptionPrice?.toString() || '10.00'}
                 </span>
-                <span className="text-slate-600 dark:text-slate-400">per month</span>
+                <span className="text-slate-600 dark:text-slate-400">
+                  {settings.currency === 'BTC' ? 'sats' : `/${settings.currency}`} per {formatPeriodDisplay(settings.subscriptionPeriod || 'MONTHLY')}
+                </span>
               </div>
             </div>
 
@@ -160,15 +175,6 @@ export default async function Home() {
           </div>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 py-8">
-        <div className="container mx-auto px-6 text-center">
-          <p className="text-slate-600 dark:text-slate-400">
-            © 2024 {settings.siteName}. Powered by Bitcoin.
-          </p>
-        </div>
-      </footer>
     </div>
   );
 }

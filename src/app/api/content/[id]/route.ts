@@ -14,13 +14,26 @@ export async function GET(
       return NextResponse.json({ message: 'Authentication required' }, { status: 401 })
     }
 
-    // Check if user is a subscriber or admin
+    // Check if user has an active subscription
     const user = await prisma.user.findUnique({
       where: { id: session.user.id }
     })
 
-    if (!user || (user.role !== 'SUBSCRIBER' && user.role !== 'ADMIN')) {
-      return NextResponse.json({ message: 'Subscription required' }, { status: 403 })
+    if (!user) {
+      return NextResponse.json({ message: 'User not found' }, { status: 404 })
+    }
+
+    // Check if user is admin or has active subscription
+    const hasAccess = user.role === 'ADMIN' || 
+                     (user.role === 'SUBSCRIBER' && 
+                      user.isSubscribed && 
+                      (!user.subscriptionEnds || user.subscriptionEnds > new Date()))
+
+    if (!hasAccess) {
+      return NextResponse.json(
+        { message: 'Active subscription required', code: 'SUBSCRIPTION_REQUIRED' },
+        { status: 403 }
+      )
     }
 
     const contentId = params.id

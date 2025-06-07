@@ -12,6 +12,7 @@ export async function GET() {
           siteName: "SatsClub",
           description: "Premium content powered by Bitcoin subscriptions",
           subscriptionPrice: 10.00,
+          subscriptionPeriod: "MONTHLY",
           currency: "USD"
         }
       })
@@ -42,6 +43,7 @@ export async function PUT(request: NextRequest) {
           siteName: data.siteName,
           description: data.description,
           subscriptionPrice: parseFloat(data.subscriptionPrice),
+          subscriptionPeriod: data.subscriptionPeriod,
           currency: data.currency,
           profilePicture: data.profilePicture,
           bannerPicture: data.bannerPicture,
@@ -56,6 +58,7 @@ export async function PUT(request: NextRequest) {
           siteName: data.siteName || "SatsClub",
           description: data.description,
           subscriptionPrice: parseFloat(data.subscriptionPrice) || 10.00,
+          subscriptionPeriod: data.subscriptionPeriod || "MONTHLY",
           currency: data.currency || "USD",
           profilePicture: data.profilePicture,
           bannerPicture: data.bannerPicture,

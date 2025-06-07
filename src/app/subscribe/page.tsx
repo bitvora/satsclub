@@ -9,6 +9,7 @@ interface Settings {
   siteName: string
   description?: string
   subscriptionPrice: number
+  subscriptionPeriod: string
   currency: string
   profilePicture?: string
   bannerPicture?: string
@@ -171,6 +172,17 @@ export default function Subscribe() {
     return expiryDate.toLocaleString()
   }
 
+  const formatPeriodDisplay = (period: string) => {
+    switch (period) {
+      case 'DAILY': return 'day'
+      case 'WEEKLY': return 'week'
+      case 'MONTHLY': return 'month'
+      case 'QUARTERLY': return 'quarter'
+      case 'ANNUALLY': return 'year'
+      default: return 'month'
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
@@ -212,7 +224,9 @@ export default function Subscribe() {
             {currentStep === 'pricing' && (
               <>
                 <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-8 py-6">
-                  <h2 className="text-2xl font-bold text-white text-center">Monthly Subscription</h2>
+                  <h2 className="text-2xl font-bold text-white text-center">
+                    {settings?.subscriptionPeriod ? `${formatPeriodDisplay(settings.subscriptionPeriod).charAt(0).toUpperCase() + formatPeriodDisplay(settings.subscriptionPeriod).slice(1)}ly` : 'Monthly'} Subscription
+                  </h2>
                 </div>
 
                 <div className="p-8">
@@ -220,11 +234,15 @@ export default function Subscribe() {
                     <div className="flex items-center justify-center gap-2 mb-4">
                       <span className="text-4xl">₿</span>
                       <span className="text-4xl font-bold text-slate-900 dark:text-white">
-                        ${settings?.subscriptionPrice || '10.00'}
+                        {settings?.currency === 'BTC' ? '' : '$'}{settings?.subscriptionPrice || '10.00'}
                       </span>
-                      <span className="text-slate-600 dark:text-slate-400">/{settings?.currency || 'USD'}</span>
+                      <span className="text-slate-600 dark:text-slate-400">
+                        {settings?.currency === 'BTC' ? 'sats' : `/${settings?.currency || 'USD'}`}
+                      </span>
                     </div>
-                    <p className="text-slate-600 dark:text-slate-400">per month</p>
+                    <p className="text-slate-600 dark:text-slate-400">
+                      per {formatPeriodDisplay(settings?.subscriptionPeriod || 'MONTHLY')}
+                    </p>
                   </div>
 
                   <div className="space-y-4 mb-8">

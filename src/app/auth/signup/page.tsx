@@ -1,19 +1,39 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
+interface Settings {
+  siteName: string
+}
+
 export default function SignUp() {
   const [formData, setFormData] = useState({
-    name: '',
     email: '',
     password: '',
     confirmPassword: ''
   })
+  const [settings, setSettings] = useState<Settings | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
+
+  useEffect(() => {
+    fetchSettings()
+  }, [])
+
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch('/api/settings')
+      if (response.ok) {
+        const data = await response.json()
+        setSettings(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch settings:', error)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,7 +53,6 @@ export default function SignUp() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: formData.name,
           email: formData.email,
           password: formData.password,
         }),
@@ -66,11 +85,11 @@ export default function SignUp() {
         <div className="text-center">
           <Link href="/" className="inline-block">
             <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-lg mx-auto mb-4">
-              S
+              {settings?.siteName?.[0]?.toUpperCase() || 'S'}
             </div>
           </Link>
           <h2 className="text-3xl font-bold text-slate-900 dark:text-white">
-            Join SatsClub
+            Join {settings?.siteName || 'SatsClub'}
           </h2>
           <p className="mt-2 text-slate-600 dark:text-slate-400">
             Create your account to access premium content
@@ -79,23 +98,6 @@ export default function SignUp() {
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Full name
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                autoComplete="name"
-                required
-                value={formData.name}
-                onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 dark:bg-slate-700 dark:text-white"
-                placeholder="Enter your full name"
-              />
-            </div>
-
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Email address

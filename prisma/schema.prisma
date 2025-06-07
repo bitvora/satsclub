@@ -120,6 +120,7 @@ model Settings {
   profilePicture  String?
   bannerPicture   String?
   subscriptionPrice Decimal @db.Decimal(10, 2) @default(10.00)
+  subscriptionPeriod SubscriptionPeriod @default(MONTHLY)
   currency        String  @default("USD")
   paymentProvider String  @default("btcpay") // or other bitcoin payment providers
   webhookSecret   String?
@@ -147,6 +148,14 @@ model PaymentEvent {
 enum UserRole {
   ADMIN
   SUBSCRIBER
+}
+
+enum SubscriptionPeriod {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  ANNUALLY
 }
 
 enum ContentType {
