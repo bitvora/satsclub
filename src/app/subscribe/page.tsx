@@ -32,7 +32,7 @@ interface CheckoutData {
 type SubscriptionStep = 'pricing' | 'wallet-connect' | 'processing' | 'success' | 'error'
 
 export default function Subscribe() {
-  const { data: session } = useSession()
+  const { data: session, update } = useSession()
   const router = useRouter()
   const [settings, setSettings] = useState<Settings | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -146,6 +146,8 @@ export default function Subscribe() {
       const statusData = await response.json()
       
       if (statusData.paid) {
+        // Payment successful - refresh the session to get updated user data
+        await update()
         setCurrentStep('success')
         setIsProcessing(false)
       } else {

@@ -49,35 +49,75 @@ export async function GET(
     // If payment is successful, update user to subscriber
     if (paymentState === 'paid' || paymentState === 'overpaid') {
       try {
-        // Check if user is already a subscriber
+        // Get subscription settings to calculate the correct end date
+        const settings = await prisma.settings.findFirst()
+        const subscriptionPeriod = settings?.subscriptionPeriod || 'MONTHLY'
+        
+        // Calculate subscription end date based on period
+        const now = new Date()
+        let subscriptionEnds: Date
+        
+        switch (subscriptionPeriod) {
+          case 'DAILY':
+            subscriptionEnds = new Date(now.getTime() + 24 * 60 * 60 * 1000) // 1 day
+            break
+          case 'WEEKLY':
+            subscriptionEnds = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000) // 7 days
+            break
+          case 'MONTHLY':
+            subscriptionEnds = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000) // 30 days
+            break
+          case 'QUARTERLY':
+            subscriptionEnds = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000) // 90 days
+            break
+          case 'ANNUALLY':
+            subscriptionEnds = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000) // 365 days
+            break
+          default:
+            subscriptionEnds = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000) // Default to 30 days
+        }
+
+        // Check if user exists and update subscription status
         const existingUser = await prisma.user.findUnique({
           where: { id: session.user.id }
         })
 
-        if (existingUser && existingUser.role !== 'SUBSCRIBER') {
-          // Update user role to subscriber
+        if (existingUser) {
+          // Update user subscription status regardless of current role
           await prisma.user.update({
             where: { id: session.user.id },
             data: { 
               role: 'SUBSCRIBER',
               isSubscribed: true,
               subscriptionId: checkoutId,
-              subscriptionEnds: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
+              subscriptionEnds: subscriptionEnds
+            }
+          })
+          
+          console.log(`User ${session.user.id} subscription updated. Expires: ${subscriptionEnds.toISOString()}`)
+        }
+
+        // Check if payment event already exists to avoid duplicates
+        const existingPaymentEvent = await prisma.paymentEvent.findFirst({
+          where: {
+            paymentId: checkoutId,
+            eventType: 'payment_received'
+          }
+        })
+
+        if (!existingPaymentEvent) {
+          // Create payment event record
+          await prisma.paymentEvent.create({
+            data: {
+              eventType: 'payment_received',
+              amount: checkoutData.data?.amount || 0,
+              currency: 'BTC',
+              paymentId: checkoutId,
+              rawData: JSON.stringify(checkoutData.data || {}),
+              processed: true
             }
           })
         }
-
-        // Create payment event record
-        await prisma.paymentEvent.create({
-          data: {
-            eventType: 'payment_received',
-            amount: checkoutData.data?.amount || 0,
-            currency: 'BTC',
-            paymentId: checkoutId,
-            rawData: JSON.stringify(checkoutData.data || {}),
-            processed: true
-          }
-        })
       } catch (dbError) {
         console.error('Database error updating subscription status:', dbError)
         // Don't fail the request - payment was successful
