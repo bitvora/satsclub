@@ -5,7 +5,7 @@ import { prisma } from '../../../../../../lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { checkoutId: string } }
+  { params }: { params: Promise<{ checkoutId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -14,7 +14,7 @@ export async function GET(
       return NextResponse.json({ message: 'Authentication required' }, { status: 401 })
     }
 
-    const checkoutId = params.checkoutId
+    const { checkoutId } = await params
 
     if (!checkoutId) {
       return NextResponse.json({ message: 'Checkout ID required' }, { status: 400 })

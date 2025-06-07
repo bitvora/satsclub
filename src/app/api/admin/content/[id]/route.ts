@@ -5,7 +5,7 @@ import { prisma } from '../../../../../../lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -14,9 +14,11 @@ export async function GET(
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
+
     const content = await prisma.content.findUnique({
       where: {
-        id: params.id,
+        id,
         adminId: session.user.id // Ensure user can only access their own content
       },
       include: {
@@ -41,7 +43,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -52,11 +54,12 @@ export async function PATCH(
 
     const body = await request.json()
     const { title, description, content, isPublished } = body
+    const { id } = await params
 
     // First check if the content exists and belongs to the user
     const existingContent = await prisma.content.findUnique({
       where: {
-        id: params.id,
+        id,
         adminId: session.user.id
       }
     })
@@ -68,7 +71,7 @@ export async function PATCH(
     // Update the content
     const updatedContent = await prisma.content.update({
       where: {
-        id: params.id
+        id
       },
       data: {
         ...(title !== undefined && { title }),
@@ -87,7 +90,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -96,10 +99,12 @@ export async function DELETE(
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
+
     // First check if the content exists and belongs to the user
     const existingContent = await prisma.content.findUnique({
       where: {
-        id: params.id,
+        id,
         adminId: session.user.id
       }
     })
@@ -111,7 +116,7 @@ export async function DELETE(
     // Delete the content
     await prisma.content.delete({
       where: {
-        id: params.id
+        id
       }
     })
 

@@ -5,7 +5,7 @@ import { prisma } from '../../../../../lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -36,7 +36,7 @@ export async function GET(
       )
     }
 
-    const contentId = params.id
+    const { id: contentId } = await params
 
     if (!contentId) {
       return NextResponse.json({ message: 'Content ID required' }, { status: 400 })

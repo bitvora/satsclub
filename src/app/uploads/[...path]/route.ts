@@ -8,7 +8,7 @@ import { existsSync } from 'fs'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -19,7 +19,8 @@ export async function GET(
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
-    const filePath = params.path.join('/')
+    const { path } = await params
+    const filePath = path.join('/')
     const fullPath = join(process.cwd(), 'uploads', filePath)
 
     // Security check: ensure the path is within uploads directory
