@@ -3,33 +3,60 @@ import Link from "next/link";
 import { prisma } from "../../lib/prisma";
 
 async function getSettings() {
+  console.log('🔍 getSettings: Starting function');
+  console.log('🔍 getSettings: Environment NODE_ENV:', process.env.NODE_ENV);
+  console.log('🔍 getSettings: Database URL exists:', !!process.env.DATABASE_URL);
+  
   try {
+    console.log('🔍 getSettings: Attempting to query database...');
     let settings = await prisma.settings.findFirst();
+    console.log('🔍 getSettings: Query completed');
+    console.log('🔍 getSettings: Settings found:', !!settings);
+    
+    if (settings) {
+      console.log('🔍 getSettings: Settings data:', {
+        id: settings.id,
+        siteName: settings.siteName,
+        description: settings.description?.substring(0, 50) + '...',
+        subscriptionPrice: settings.subscriptionPrice,
+        currency: settings.currency
+      });
+      return settings;
+    }
     
     // Create default settings if none exist
-    if (!settings) {
-      settings = await prisma.settings.create({
-        data: {
-          siteName: "SatsClub",
-          description: "Premium content powered by Bitcoin subscriptions",
-          subscriptionPrice: 10.00,
-          subscriptionPeriod: "MONTHLY",
-          currency: "USD"
-        }
-      });
-    }
+    console.log('🔍 getSettings: No settings found, creating default...');
+    settings = await prisma.settings.create({
+      data: {
+        siteName: "SatsClub",
+        description: "Premium content powered by Bitcoin subscriptions",
+        subscriptionPrice: 10.00,
+        currency: "USD"
+      }
+    });
+    console.log('🔍 getSettings: Default settings created:', settings.id);
     
     return settings;
   } catch (error) {
+    console.error('❌ getSettings: Error occurred:', error);
+    console.error('❌ getSettings: Error name:', (error as Error)?.name);
+    console.error('❌ getSettings: Error message:', (error as Error)?.message);
+    console.error('❌ getSettings: Error stack:', (error as Error)?.stack);
+    
     // Return default settings if database is not available
+    console.log('🔍 getSettings: Returning fallback default settings');
     return {
+      id: 'fallback',
       siteName: "SatsClub",
       description: "Premium content powered by Bitcoin subscriptions",
       profilePicture: null,
       bannerPicture: null,
       subscriptionPrice: 10.00,
-      subscriptionPeriod: "MONTHLY",
-      currency: "USD"
+      currency: "USD",
+      paymentProvider: "btcpay",
+      webhookSecret: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
   }
 }
@@ -102,7 +129,8 @@ export default async function Home() {
                   {settings.currency === 'BTC' ? '' : '$'}{settings.subscriptionPrice?.toString() || '10.00'}
                 </span>
                 <span className="text-slate-600 dark:text-slate-400">
-                  {settings.currency === 'BTC' ? 'sats' : `/${settings.currency}`} per {formatPeriodDisplay(settings.subscriptionPeriod || 'MONTHLY')}
+                  {settings.currency === 'BTC' ? 'sats' : `/${settings.currency}`} per month
+                  {/* per {formatPeriodDisplay(settings.subscriptionPeriod || 'MONTHLY')} */}
                 </span>
               </div>
             </div>
